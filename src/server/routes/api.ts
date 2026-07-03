@@ -8,10 +8,12 @@ import type {
   CareActionType,
   ErrorResponse,
   InitResponse,
+  WhyResponse,
 } from '../../shared/types';
 import { getNestState } from '../core/nest';
 import { getRecentActivity, pushActivity } from '../core/activity';
 import { getRemainingActionsToday, spendCareAction } from '../core/care';
+import { getWhyInfo } from '../core/mutation';
 
 export const api = new Hono();
 
@@ -66,6 +68,25 @@ api.get('/activity', async (c) => {
 
   const activity = await getRecentActivity(subredditId);
   return c.json<ActivityResponse>({ type: 'activity', activity });
+});
+
+api.get('/why', async (c) => {
+  const { subredditId } = context;
+
+  if (!subredditId) {
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: 'subredditId is required but missing from context',
+      },
+      400
+    );
+  }
+
+  const why = await getWhyInfo(subredditId);
+  return c.json<WhyResponse>(
+    why ?? { type: 'why', lastTickAt: null, input: null, appliedMutation: null }
+  );
 });
 
 api.post('/care-action', async (c) => {

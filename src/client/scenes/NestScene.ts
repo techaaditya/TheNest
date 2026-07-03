@@ -1,11 +1,12 @@
 import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import type { CareActionType } from '../../shared/types';
-import { fetchInit, postCareAction } from '../net';
+import { fetchInit, fetchWhy, postCareAction } from '../net';
 import { CreatureRenderer } from '../creature/CreatureRenderer';
 import { CareButtons } from './ui/CareButtons';
 import { MoodBars } from './ui/MoodBars';
 import { ActivityPanel } from './ui/ActivityPanel';
+import { WhyPanel } from './ui/WhyPanel';
 
 export class NestScene extends Scene {
   private background: Phaser.GameObjects.Image;
@@ -15,6 +16,7 @@ export class NestScene extends Scene {
   private moodBars: MoodBars;
   private careButtons: CareButtons;
   private activityPanel: ActivityPanel;
+  private whyPanel: WhyPanel;
 
   constructor() {
     super('NestScene');
@@ -48,6 +50,7 @@ export class NestScene extends Scene {
       onAction: (actionType) => void this.handleCareAction(actionType),
     });
     this.activityPanel = new ActivityPanel(this, 512, 610);
+    this.whyPanel = new WhyPanel(this, 512, 610);
 
     void this.refresh();
 
@@ -59,11 +62,15 @@ export class NestScene extends Scene {
 
   private async refresh(): Promise<void> {
     try {
-      const { nest, remaining, activity } = await fetchInit();
+      const [{ nest, remaining, activity }, why] = await Promise.all([
+        fetchInit(),
+        fetchWhy(),
+      ]);
       this.creature.render(nest.traits);
       this.moodBars.setMood(nest.mood);
       this.careButtons.setRemaining(remaining);
       this.activityPanel.setActivity(activity);
+      this.whyPanel.setWhy(why);
       this.titleText.setText(nest.creatureId);
     } catch (error) {
       console.error('Failed to load the Nest:', error);
@@ -114,10 +121,13 @@ export class NestScene extends Scene {
     this.careButtons.setScale(scaleFactor);
 
     this.activityPanel.setPosition(
-      width / 2 - 110 * scaleFactor,
+      width / 2 - 260 * scaleFactor,
       height * 0.78
     );
     this.activityPanel.setScale(scaleFactor);
+
+    this.whyPanel.setPosition(width / 2 + 60 * scaleFactor, height * 0.78);
+    this.whyPanel.setScale(scaleFactor);
 
     this.statusText.setPosition(width / 2, height * 0.92);
     this.statusText.setScale(scaleFactor);

@@ -41,6 +41,14 @@
   "triggers": {
     "onAppInstall": "/internal/triggers/on-app-install"
   },
+  "scheduler": {
+    "tasks": {
+      "daily-nest-tick": {
+        "endpoint": "/internal/scheduler/daily-tick",
+        "cron": "0 0 * * *"
+      }
+    }
+  },
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch"

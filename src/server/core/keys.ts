@@ -26,3 +26,5 @@ export const namingRateLimitKey = (subredditId: string): string =>
   `ratelimit:naming:${subredditId}`;
 
 export const installsKey = (): string => 'installs';
+
+export const whyKey = (subredditId: string): string => `why:${subredditId}`;

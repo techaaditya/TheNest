@@ -48,6 +48,38 @@ const bumpMoodAccumulator = async (
   await redis.expire(key, DAILY_ACTION_LOG_TTL_SECONDS);
 };
 
+/** The day's raw mood deltas and per-action-type counts, read by the daily tick. */
+export type MoodAccumulator = {
+  contentmentDelta: number;
+  affectionDelta: number;
+  energyDelta: number;
+  feedCount: number;
+  petCount: number;
+  playCount: number;
+};
+
+export const getAccumulatedMood = async (
+  subredditId: string,
+  date: string
+): Promise<MoodAccumulator> => {
+  const raw = await redis.hGetAll(moodAccumulatorKey(subredditId, date));
+  return {
+    contentmentDelta: Number(raw.contentment ?? 0),
+    affectionDelta: Number(raw.affection ?? 0),
+    energyDelta: Number(raw.energy ?? 0),
+    feedCount: Number(raw.feed_count ?? 0),
+    petCount: Number(raw.pet_count ?? 0),
+    playCount: Number(raw.play_count ?? 0),
+  };
+};
+
+export const resetMoodAccumulators = async (
+  subredditId: string,
+  date: string
+): Promise<void> => {
+  await redis.del(moodAccumulatorKey(subredditId, date));
+};
+
 export type SpendActionResult =
   | { ok: true; remaining: number }
   | { ok: false; reason: 'daily_cap_reached' };
