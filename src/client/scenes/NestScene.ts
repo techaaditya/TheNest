@@ -1,13 +1,20 @@
 import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
-import type { NestState } from '../../shared/types';
-import { fetchInit } from '../net';
+import type { CareActionType } from '../../shared/types';
+import { fetchInit, postCareAction } from '../net';
 import { CreatureRenderer } from '../creature/CreatureRenderer';
+import { CareButtons } from './ui/CareButtons';
+import { MoodBars } from './ui/MoodBars';
+import { ActivityPanel } from './ui/ActivityPanel';
 
 export class NestScene extends Scene {
   private background: Phaser.GameObjects.Image;
+  private titleText: Phaser.GameObjects.Text;
   private statusText: Phaser.GameObjects.Text;
   private creature: CreatureRenderer;
+  private moodBars: MoodBars;
+  private careButtons: CareButtons;
+  private activityPanel: ActivityPanel;
 
   constructor() {
     super('NestScene');
@@ -17,8 +24,8 @@ export class NestScene extends Scene {
     this.cameras.main.setBackgroundColor(0x0f172a);
     this.background = this.add.image(512, 384, 'background').setAlpha(0.2);
 
-    this.statusText = this.add
-      .text(512, 620, 'Loading the Nest...', {
+    this.titleText = this.add
+      .text(512, 60, 'Loading the Nest...', {
         fontFamily: 'Arial Black',
         fontSize: 22,
         color: '#e2e8f0',
@@ -26,9 +33,23 @@ export class NestScene extends Scene {
       })
       .setOrigin(0.5);
 
-    this.creature = new CreatureRenderer(this, 512, 340);
+    this.statusText = this.add
+      .text(512, 690, '', {
+        fontFamily: 'Arial',
+        fontSize: 16,
+        color: '#fbbf24',
+        align: 'center',
+      })
+      .setOrigin(0.5);
 
-    void this.loadNest();
+    this.creature = new CreatureRenderer(this, 512, 260);
+    this.moodBars = new MoodBars(this, 512, 420);
+    this.careButtons = new CareButtons(this, 512, 540, {
+      onAction: (actionType) => void this.handleCareAction(actionType),
+    });
+    this.activityPanel = new ActivityPanel(this, 512, 610);
+
+    void this.refresh();
 
     this.updateLayout(this.scale.width, this.scale.height);
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
@@ -36,19 +57,32 @@ export class NestScene extends Scene {
     });
   }
 
-  private async loadNest(): Promise<void> {
+  private async refresh(): Promise<void> {
     try {
-      const { nest } = await fetchInit();
+      const { nest, remaining, activity } = await fetchInit();
       this.creature.render(nest.traits);
-      this.statusText.setText(this.describeNest(nest));
+      this.moodBars.setMood(nest.mood);
+      this.careButtons.setRemaining(remaining);
+      this.activityPanel.setActivity(activity);
+      this.titleText.setText(nest.creatureId);
     } catch (error) {
       console.error('Failed to load the Nest:', error);
-      this.statusText.setText('Failed to load the Nest.');
+      this.titleText.setText('Failed to load the Nest.');
     }
   }
 
-  private describeNest(nest: NestState): string {
-    return `${nest.creatureId}\ncontentment ${nest.mood.contentment} · affection ${nest.mood.affection} · energy ${nest.mood.energy}`;
+  private async handleCareAction(actionType: CareActionType): Promise<void> {
+    const result = await postCareAction(actionType);
+
+    if ('error' in result) {
+      this.statusText.setText(
+        "You're out of that action for today — come back tomorrow!"
+      );
+      return;
+    }
+
+    this.statusText.setText('');
+    await this.refresh();
   }
 
   private updateLayout(width: number, height: number): void {
@@ -67,12 +101,25 @@ export class NestScene extends Scene {
 
     const scaleFactor = Math.min(Math.min(width / 1024, height / 768), 1);
 
-    this.creature.setPosition(width / 2, height * 0.42);
+    this.titleText.setPosition(width / 2, height * 0.08);
+    this.titleText.setScale(scaleFactor);
+
+    this.creature.setPosition(width / 2, height * 0.32);
     this.creature.setScale(scaleFactor);
 
-    if (this.statusText) {
-      this.statusText.setPosition(width / 2, height * 0.8);
-      this.statusText.setScale(scaleFactor);
-    }
+    this.moodBars.setPosition(width / 2, height * 0.54);
+    this.moodBars.setScale(scaleFactor);
+
+    this.careButtons.setPosition(width / 2, height * 0.68);
+    this.careButtons.setScale(scaleFactor);
+
+    this.activityPanel.setPosition(
+      width / 2 - 110 * scaleFactor,
+      height * 0.78
+    );
+    this.activityPanel.setScale(scaleFactor);
+
+    this.statusText.setPosition(width / 2, height * 0.92);
+    this.statusText.setScale(scaleFactor);
   }
 }
