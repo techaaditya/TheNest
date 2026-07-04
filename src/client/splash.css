@@ -18,10 +18,9 @@
   gap: 16px;
 }
 
-.snoo {
-  object-fit: contain;
-  width: 50%;
-  max-width: 250px;
+.icon {
+  font-size: 4.5em;
+  line-height: 1;
   margin: 0 auto;
 }
 
@@ -42,12 +41,7 @@
   font-size: 1em;
   text-align: center;
   color: #5c6c74;
-}
-
-.code {
-  background-color: #e5ebee;
-  padding: 2px 4px;
-  border-radius: 4px;
+  max-width: 320px;
 }
 
 .start-button {
@@ -66,21 +60,3 @@
   transition: background-color 0.2s ease;
 }
 
-.footer {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 12px;
-  font-size: 0.8em;
-  color: #666666;
-}
-
-.docs-link {
-  cursor: pointer;
-}
-
-.divider {
-  color: rgba(0, 0, 0, 0.1);
-}
