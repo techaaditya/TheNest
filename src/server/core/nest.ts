@@ -8,9 +8,10 @@ import { installsKey, nestKey } from './keys';
 
 const nowISO = (): string => new Date().toISOString();
 
-const createNestState = (subredditId: string): NestState => ({
+const createNestState = (subredditId: string, postId: string): NestState => ({
   subredditId,
   creatureId: `NEST-${subredditId}`,
+  postId,
   traits: { ...DEFAULT_TRAITS },
   mood: { ...DEFAULT_MOOD },
   mutationHistory: [],
@@ -31,11 +32,17 @@ export const getInstalledSubreddits = async (): Promise<string[]> => {
   return members.map((entry) => entry.member);
 };
 
-/** Creates and persists a fresh Nest for a subreddit that doesn't have one yet, and registers the install. */
+/**
+ * Creates and persists a fresh Nest for a subreddit that doesn't have one yet,
+ * and registers the install. `postId` is empty only in the defensive fallback
+ * path (see getNestState) where no install trigger has run yet; naming
+ * threads simply don't open until it's known.
+ */
 export const initNestState = async (
-  subredditId: string
+  subredditId: string,
+  postId = ''
 ): Promise<NestState> => {
-  const state = createNestState(subredditId);
+  const state = createNestState(subredditId, postId);
   await saveNestState(state);
   await registerInstall(subredditId);
   return state;

@@ -32,6 +32,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/example-form"
+      },
+      {
+        "label": "Reject current Nest name",
+        "description": "Force-close the active naming thread with no winning name",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/naming-reject"
       }
     ]
   },
@@ -46,6 +53,10 @@
       "daily-nest-tick": {
         "endpoint": "/internal/scheduler/daily-tick",
         "cron": "0 0 * * *"
+      },
+      "naming-finalize-sweep": {
+        "endpoint": "/internal/scheduler/naming-finalize",
+        "cron": "0 * * * *"
       }
     }
   },

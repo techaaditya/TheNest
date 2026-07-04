@@ -37,6 +37,8 @@ export type MutationRecord = {
 export type NestState = {
   subredditId: string;
   creatureId: string;
+  /** The Reddit post this Nest lives on — naming threads are comments on it. Empty until the install trigger sets it. */
+  postId: string;
   traits: Traits;
   mood: Mood;
   mutationHistory: MutationRecord[];
@@ -130,6 +132,13 @@ export type WhyResponse = {
   lastTickAt: string | null;
   input: WhyMutationInput | null;
   appliedMutation: MutationRecord | null;
+};
+
+export type NamingStatusResponse = {
+  type: 'naming';
+  latestMutation: MutationRecord | null;
+  /** Present only while a naming window is open/finalizing for the latest mutation. */
+  window: NamingWindow | null;
 };
 
 export type RealtimeCareMessage = {

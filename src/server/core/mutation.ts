@@ -31,6 +31,7 @@ import {
   resetMoodAccumulators,
 } from './care';
 import { getNestState, saveNestState } from './nest';
+import { openNamingWindow } from './naming';
 
 /** Deterministic PRNG (mulberry32) so the roll is reproducible for a given seed. */
 const mulberry32 = (seed: number): (() => number) => {
@@ -228,6 +229,10 @@ export const runDailyTickForSubreddit = async (
   }
 
   await saveNestState(nextState);
+
+  if (appliedMutation) {
+    await openNamingWindow(subredditId, nextState.postId, appliedMutation);
+  }
 
   const input: WhyMutationInput = {
     contentmentDelta: accumulator.contentmentDelta,

@@ -7,6 +7,7 @@ import type {
   CareActionResponse,
   CareActionType,
   InitResponse,
+  NamingStatusResponse,
   StateResponse,
   WhyResponse,
 } from '../shared/types';
@@ -25,6 +26,14 @@ export const fetchState = async (): Promise<StateResponse> => {
     throw new Error(`API error: ${response.status}`);
   }
   return (await response.json()) as StateResponse;
+};
+
+export const fetchNaming = async (): Promise<NamingStatusResponse> => {
+  const response = await fetch('/api/naming');
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return (await response.json()) as NamingStatusResponse;
 };
 
 export const fetchActivity = async (): Promise<ActivityResponse> => {

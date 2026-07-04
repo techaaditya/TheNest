@@ -25,6 +25,10 @@ export const namingOpenSetKey = (): string => 'naming:open';
 export const namingRateLimitKey = (subredditId: string): string =>
   `ratelimit:naming:${subredditId}`;
 
+/** Maps a subreddit to the mutationId of its currently open naming window, if any. */
+export const activeNamingKey = (subredditId: string): string =>
+  `naming:active:${subredditId}`;
+
 export const installsKey = (): string => 'installs';
 
 export const whyKey = (subredditId: string): string => `why:${subredditId}`;

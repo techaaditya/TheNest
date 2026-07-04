@@ -8,6 +8,7 @@ import type {
   CareActionType,
   ErrorResponse,
   InitResponse,
+  NamingStatusResponse,
   RealtimeCareMessage,
   StateResponse,
   WhyResponse,
@@ -17,6 +18,7 @@ import { getRecentActivity, pushActivity } from '../core/activity';
 import { getRemainingActionsToday, spendCareAction } from '../core/care';
 import { getWhyInfo } from '../core/mutation';
 import { broadcastCareAction } from '../core/realtime';
+import { getNamingStatus } from '../core/naming';
 
 export const api = new Hono();
 
@@ -107,6 +109,23 @@ api.get('/why', async (c) => {
   return c.json<WhyResponse>(
     why ?? { type: 'why', lastTickAt: null, input: null, appliedMutation: null }
   );
+});
+
+api.get('/naming', async (c) => {
+  const { subredditId } = context;
+
+  if (!subredditId) {
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: 'subredditId is required but missing from context',
+      },
+      400
+    );
+  }
+
+  const naming = await getNamingStatus(subredditId);
+  return c.json<NamingStatusResponse>(naming);
 });
 
 api.post('/care-action', async (c) => {

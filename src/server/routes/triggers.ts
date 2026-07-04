@@ -10,7 +10,7 @@ triggers.post('/on-app-install', async (c) => {
   try {
     const post = await createPost();
     const input = await c.req.json<OnAppInstallRequest>();
-    await initNestState(context.subredditId);
+    await initNestState(context.subredditId, post.id);
 
     return c.json<TriggerResponse>(
       {

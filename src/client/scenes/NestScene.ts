@@ -1,13 +1,14 @@
 import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import type { CareActionType, RealtimeCareMessage } from '../../shared/types';
-import { fetchInit, fetchWhy, postCareAction } from '../net';
+import { fetchInit, fetchNaming, fetchWhy, postCareAction } from '../net';
 import { subscribeToCareActions } from '../realtime';
 import { CreatureRenderer } from '../creature/CreatureRenderer';
 import { CareButtons } from './ui/CareButtons';
 import { MoodBars } from './ui/MoodBars';
 import { ActivityPanel } from './ui/ActivityPanel';
 import { WhyPanel } from './ui/WhyPanel';
+import { NamingPanel } from './ui/NamingPanel';
 
 export class NestScene extends Scene {
   private background: Phaser.GameObjects.Image;
@@ -18,6 +19,7 @@ export class NestScene extends Scene {
   private careButtons: CareButtons;
   private activityPanel: ActivityPanel;
   private whyPanel: WhyPanel;
+  private namingPanel: NamingPanel;
   private unsubscribeRealtime: (() => void) | null = null;
 
   constructor() {
@@ -53,6 +55,7 @@ export class NestScene extends Scene {
     });
     this.activityPanel = new ActivityPanel(this, 512, 610);
     this.whyPanel = new WhyPanel(this, 512, 610);
+    this.namingPanel = new NamingPanel(this, 512, 660);
 
     void this.refresh();
 
@@ -80,15 +83,17 @@ export class NestScene extends Scene {
 
   private async refresh(): Promise<void> {
     try {
-      const [{ nest, remaining, activity }, why] = await Promise.all([
+      const [{ nest, remaining, activity }, why, naming] = await Promise.all([
         fetchInit(),
         fetchWhy(),
+        fetchNaming(),
       ]);
       this.creature.render(nest.traits);
       this.moodBars.setMood(nest.mood);
       this.careButtons.setRemaining(remaining);
       this.activityPanel.setActivity(activity);
       this.whyPanel.setWhy(why);
+      this.namingPanel.setNaming(naming);
       this.titleText.setText(nest.creatureId);
     } catch (error) {
       console.error('Failed to load the Nest:', error);
@@ -147,7 +152,10 @@ export class NestScene extends Scene {
     this.whyPanel.setPosition(width / 2 + 60 * scaleFactor, height * 0.78);
     this.whyPanel.setScale(scaleFactor);
 
-    this.statusText.setPosition(width / 2, height * 0.92);
+    this.namingPanel.setPosition(width / 2 - 200 * scaleFactor, height * 0.87);
+    this.namingPanel.setScale(scaleFactor);
+
+    this.statusText.setPosition(width / 2, height * 0.94);
     this.statusText.setScale(scaleFactor);
   }
 }
