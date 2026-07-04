@@ -65,6 +65,42 @@ export class CreatureRenderer {
     this.container.setScale(scale);
   }
 
+  /** A brief scale-punch plus an outward puff of particles, played whenever
+   * the daily tick has produced a new mutation — the visible payoff for the
+   * community's care (doc §5.1 / §14). */
+  playMutationTransition(): void {
+    const baseScaleX = this.container.scaleX;
+    const baseScaleY = this.container.scaleY;
+    this.container.setScale(baseScaleX * 1.3, baseScaleY * 1.3);
+    this.scene.tweens.add({
+      targets: this.container,
+      scaleX: baseScaleX,
+      scaleY: baseScaleY,
+      duration: 400,
+      ease: 'Back.Out',
+    });
+
+    const puffCount = 10;
+    for (let i = 0; i < puffCount; i++) {
+      const angle = (i / puffCount) * Math.PI * 2;
+      const distance = 60 + Math.random() * 40;
+      const puff = this.scene.add.graphics();
+      puff.fillStyle(0xfbbf24, 0.9);
+      puff.fillCircle(0, 0, 6);
+      puff.setPosition(this.container.x, this.container.y);
+
+      this.scene.tweens.add({
+        targets: puff,
+        x: puff.x + Math.cos(angle) * distance,
+        y: puff.y + Math.sin(angle) * distance,
+        alpha: 0,
+        duration: 600,
+        ease: 'Cubic.Out',
+        onComplete: () => puff.destroy(),
+      });
+    }
+  }
+
   private ensureBodyTexture(base: Traits['base']): string {
     const key = `nest-body-${base}`;
     if (!this.scene.textures.exists(key)) {

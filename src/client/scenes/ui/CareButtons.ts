@@ -13,7 +13,7 @@ const LABELS: Record<CareActionType, string> = {
   play: 'Play',
 };
 
-const BUTTON_SPACING = 160;
+const BUTTON_SPACING = 170;
 
 export class CareButtons {
   private container: Phaser.GameObjects.Container;
@@ -33,10 +33,10 @@ export class CareButtons {
       const button = scene.add
         .text(bx, 0, LABELS[actionType], {
           fontFamily: 'Arial Black',
-          fontSize: 24,
+          fontSize: 26,
           color: '#ffffff',
           backgroundColor: '#334155',
-          padding: { x: 20, y: 10 },
+          padding: { x: 24, y: 14 },
         })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
@@ -45,6 +45,11 @@ export class CareButtons {
         )
         .on('pointerout', () => button.setStyle({ backgroundColor: '#334155' }))
         .on('pointerdown', () => callbacks.onAction(actionType));
+
+      // Disabled until the first successful load calls setRemaining, so a
+      // visitor can't tap before we know their real daily caps.
+      button.disableInteractive();
+      button.setAlpha(0.4);
 
       this.buttons[actionType] = button;
       this.container.add(button);

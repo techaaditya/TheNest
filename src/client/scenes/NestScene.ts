@@ -9,6 +9,7 @@ import { MoodBars } from './ui/MoodBars';
 import { ActivityPanel } from './ui/ActivityPanel';
 import { WhyPanel } from './ui/WhyPanel';
 import { NamingPanel } from './ui/NamingPanel';
+import { OnboardingBanner } from './ui/OnboardingBanner';
 
 export class NestScene extends Scene {
   private background: Phaser.GameObjects.Image;
@@ -20,7 +21,9 @@ export class NestScene extends Scene {
   private activityPanel: ActivityPanel;
   private whyPanel: WhyPanel;
   private namingPanel: NamingPanel;
+  private onboardingBanner: OnboardingBanner;
   private unsubscribeRealtime: (() => void) | null = null;
+  private lastKnownMutationCount: number | null = null;
 
   constructor() {
     super('NestScene');
@@ -56,6 +59,7 @@ export class NestScene extends Scene {
     this.activityPanel = new ActivityPanel(this, 512, 610);
     this.whyPanel = new WhyPanel(this, 512, 610);
     this.namingPanel = new NamingPanel(this, 512, 660);
+    this.onboardingBanner = new OnboardingBanner(this, 512, 110);
 
     void this.refresh();
 
@@ -95,6 +99,15 @@ export class NestScene extends Scene {
       this.whyPanel.setWhy(why);
       this.namingPanel.setNaming(naming);
       this.titleText.setText(nest.creatureId);
+
+      const mutationCount = nest.mutationHistory.length;
+      if (
+        this.lastKnownMutationCount !== null &&
+        mutationCount > this.lastKnownMutationCount
+      ) {
+        this.creature.playMutationTransition();
+      }
+      this.lastKnownMutationCount = mutationCount;
     } catch (error) {
       console.error('Failed to load the Nest:', error);
       this.titleText.setText('Failed to load the Nest.');
@@ -129,10 +142,18 @@ export class NestScene extends Scene {
       }
     }
 
-    const scaleFactor = Math.min(Math.min(width / 1024, height / 768), 1);
+    // Floor the scale so buttons and text stay legible/tappable on narrow
+    // mobile viewports rather than shrinking indefinitely with aspect ratio.
+    const scaleFactor = Math.max(
+      0.55,
+      Math.min(Math.min(width / 1024, height / 768), 1)
+    );
 
     this.titleText.setPosition(width / 2, height * 0.08);
     this.titleText.setScale(scaleFactor);
+
+    this.onboardingBanner.setPosition(width / 2, height * 0.16);
+    this.onboardingBanner.setScale(scaleFactor);
 
     this.creature.setPosition(width / 2, height * 0.32);
     this.creature.setScale(scaleFactor);
