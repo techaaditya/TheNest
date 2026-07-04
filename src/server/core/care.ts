@@ -2,7 +2,7 @@
 // are server-authoritative — the client only ever sends an actionType.
 
 import { redis } from '@devvit/web/server';
-import type { CareActionType, DailyActionCounts } from '../../shared/types';
+import type { CareActionType, DailyActionCounts, Mood } from '../../shared/types';
 import {
   ACTION_CAPS,
   ACTION_MOOD_AXIS,
@@ -10,6 +10,7 @@ import {
   MOOD_NUDGE_PER_ACTION,
 } from '../../shared/config';
 import { actionsKey, moodAccumulatorKey } from './keys';
+import { getNestState, saveNestState } from './nest';
 
 const todayUTC = (): string => new Date().toISOString().slice(0, 10);
 
@@ -81,8 +82,27 @@ export const resetMoodAccumulators = async (
 };
 
 export type SpendActionResult =
-  | { ok: true; remaining: number }
+  | { ok: true; remaining: number; mood: Mood }
   | { ok: false; reason: 'daily_cap_reached' };
+
+const clampMoodValue = (value: number): number =>
+  Math.max(0, Math.min(100, value));
+
+/** Nudges the Nest's live, persisted mood gauge — separate from the day's
+ * mutation-eligibility accumulator, which is never clamped. */
+const nudgeLiveMood = async (
+  subredditId: string,
+  actionType: CareActionType
+): Promise<Mood> => {
+  const axis = ACTION_MOOD_AXIS[actionType];
+  const state = await getNestState(subredditId);
+  const nextMood: Mood = {
+    ...state.mood,
+    [axis]: clampMoodValue(state.mood[axis] + MOOD_NUDGE_PER_ACTION),
+  };
+  await saveNestState({ ...state, mood: nextMood });
+  return nextMood;
+};
 
 /**
  * Spends one care action if the user is under their daily cap. Uses an
@@ -106,6 +126,7 @@ export const spendCareAction = async (
   }
 
   await bumpMoodAccumulator(subredditId, actionType);
+  const mood = await nudgeLiveMood(subredditId, actionType);
 
-  return { ok: true, remaining: cap - newUsed };
+  return { ok: true, remaining: cap - newUsed, mood };
 };

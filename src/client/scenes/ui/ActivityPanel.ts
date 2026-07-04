@@ -13,6 +13,7 @@ const EMPTY_MESSAGE = 'No activity yet — be the first to care for the Nest.';
 export class ActivityPanel {
   private container: Phaser.GameObjects.Container;
   private text: Phaser.GameObjects.Text;
+  private items: ActivityItem[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.container = scene.add.container(x, y);
@@ -27,16 +28,25 @@ export class ActivityPanel {
   }
 
   setActivity(activity: ActivityItem[]): void {
-    if (activity.length === 0) {
+    this.items = activity.slice(0, MAX_VISIBLE_ITEMS);
+    this.render();
+  }
+
+  /** Prepends a single live item (e.g. from a realtime broadcast) without a full refetch. */
+  prependActivity(item: ActivityItem): void {
+    this.items = [item, ...this.items].slice(0, MAX_VISIBLE_ITEMS);
+    this.render();
+  }
+
+  private render(): void {
+    if (this.items.length === 0) {
       this.text.setText(EMPTY_MESSAGE);
       return;
     }
 
-    const lines = activity
-      .slice(0, MAX_VISIBLE_ITEMS)
-      .map(
-        (item) => `${item.userDisplay} ${ACTION_VERB[item.actionType]} the Nest`
-      );
+    const lines = this.items.map(
+      (item) => `${item.userDisplay} ${ACTION_VERB[item.actionType]} the Nest`
+    );
     this.text.setText(lines.join('\n'));
   }
 

@@ -1,7 +1,8 @@
 import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
-import type { CareActionType } from '../../shared/types';
+import type { CareActionType, RealtimeCareMessage } from '../../shared/types';
 import { fetchInit, fetchWhy, postCareAction } from '../net';
+import { subscribeToCareActions } from '../realtime';
 import { CreatureRenderer } from '../creature/CreatureRenderer';
 import { CareButtons } from './ui/CareButtons';
 import { MoodBars } from './ui/MoodBars';
@@ -17,6 +18,7 @@ export class NestScene extends Scene {
   private careButtons: CareButtons;
   private activityPanel: ActivityPanel;
   private whyPanel: WhyPanel;
+  private unsubscribeRealtime: (() => void) | null = null;
 
   constructor() {
     super('NestScene');
@@ -54,9 +56,25 @@ export class NestScene extends Scene {
 
     void this.refresh();
 
+    this.unsubscribeRealtime = subscribeToCareActions((message) => {
+      this.handleRealtimeCareAction(message);
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.unsubscribeRealtime?.();
+    });
+
     this.updateLayout(this.scale.width, this.scale.height);
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
       this.updateLayout(gameSize.width, gameSize.height);
+    });
+  }
+
+  private handleRealtimeCareAction(message: RealtimeCareMessage): void {
+    this.moodBars.setMood(message.mood);
+    this.activityPanel.prependActivity({
+      userDisplay: message.userDisplay,
+      actionType: message.actionType,
+      ts: message.ts,
     });
   }
 

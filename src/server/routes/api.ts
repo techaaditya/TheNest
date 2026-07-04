@@ -8,12 +8,15 @@ import type {
   CareActionType,
   ErrorResponse,
   InitResponse,
+  RealtimeCareMessage,
+  StateResponse,
   WhyResponse,
 } from '../../shared/types';
 import { getNestState } from '../core/nest';
 import { getRecentActivity, pushActivity } from '../core/activity';
 import { getRemainingActionsToday, spendCareAction } from '../core/care';
 import { getWhyInfo } from '../core/mutation';
+import { broadcastCareAction } from '../core/realtime';
 
 export const api = new Hono();
 
@@ -51,6 +54,23 @@ api.get('/init', async (c) => {
         : 'Unknown error during initialization';
     return c.json<ErrorResponse>({ status: 'error', message }, 400);
   }
+});
+
+api.get('/state', async (c) => {
+  const { subredditId } = context;
+
+  if (!subredditId) {
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: 'subredditId is required but missing from context',
+      },
+      400
+    );
+  }
+
+  const nest = await getNestState(subredditId);
+  return c.json<StateResponse>({ type: 'state', nest });
 });
 
 api.get('/activity', async (c) => {
@@ -116,7 +136,15 @@ api.post('/care-action', async (c) => {
     return c.json<CareActionErrorResponse>({ error: 'daily_cap_reached' }, 429);
   }
 
-  await pushActivity(subredditId, username ?? 'a redditor', actionType);
+  const userDisplay = username ?? 'a redditor';
+  const ts = Date.now();
+  await pushActivity(subredditId, userDisplay, actionType);
+  await broadcastCareAction(subredditId, {
+    actionType,
+    userDisplay,
+    ts,
+    mood: result.mood,
+  } satisfies RealtimeCareMessage);
 
   return c.json<CareActionResponse>({
     type: 'care-action',
