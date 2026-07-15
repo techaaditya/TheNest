@@ -39,13 +39,6 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/naming-reject"
-      },
-      {
-        "label": "Force daily tick (test only)",
-        "description": "Manually run the mood-to-mutation tick for this subreddit, without waiting for the cron",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/force-daily-tick"
       }
     ]
   },

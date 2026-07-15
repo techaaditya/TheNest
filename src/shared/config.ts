@@ -43,9 +43,8 @@ export const ACTION_DIVERSITY_BONUS = 10;
 /** Minimum daily mood score required for a mutation to be eligible to roll. */
 export const MUTATION_SCORE_THRESHOLD = 30;
 
-/** Minimum days that must pass since the last mutation before another can occur.
- * TEMPORARILY set to 0 for demo seeding on submission day; restore to 2 before final submit. */
-export const MIN_DAYS_BETWEEN_MUTATIONS = 0;
+/** Minimum days that must pass since the last mutation before another can occur. */
+export const MIN_DAYS_BETWEEN_MUTATIONS = 2;
 
 /** Naming window duration in hours once a mutation is applied. */
 export const NAMING_WINDOW_HOURS = 24;
