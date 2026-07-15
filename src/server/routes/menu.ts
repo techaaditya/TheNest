@@ -3,6 +3,7 @@ import type { UiResponse } from '@devvit/web/shared';
 import { context } from '@devvit/web/server';
 import { createPost } from '../core/post';
 import { rejectActiveNamingWindow } from '../core/naming';
+import { runDailyTickForSubreddit } from '../core/mutation';
 
 export const menu = new Hono();
 
@@ -24,6 +25,20 @@ menu.post('/post-create', async (c) => {
       },
       400
     );
+  }
+});
+
+menu.post('/force-daily-tick', async (c) => {
+  try {
+    const date = new Date().toISOString().slice(0, 10);
+    await runDailyTickForSubreddit(context.subredditId, date);
+    return c.json<UiResponse>(
+      { showToast: 'Daily tick ran for this subreddit.' },
+      200
+    );
+  } catch (error) {
+    console.error(`Error forcing daily tick: ${error}`);
+    return c.json<UiResponse>({ showToast: 'Failed to run daily tick.' }, 400);
   }
 });
 
