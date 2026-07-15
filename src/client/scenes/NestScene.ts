@@ -4,6 +4,7 @@ import { context } from '@devvit/web/client';
 import type { CareActionType, RealtimeCareMessage } from '../../shared/types';
 import { fetchInit, fetchNaming, fetchWhy, postCareAction } from '../net';
 import { subscribeToCareActions } from '../realtime';
+import { PALETTE, TEXT } from '../palette';
 import { CreatureRenderer } from '../creature/CreatureRenderer';
 import { ACTION_EMOJI, CareButtons } from './ui/CareButtons';
 import { MoodBars } from './ui/MoodBars';
@@ -35,13 +36,13 @@ export class NestScene extends Scene {
 
   create() {
     this.backgroundFill = this.add.graphics();
-    this.spawnStars();
+    this.spawnClouds();
 
     this.titleText = this.add
       .text(512, 40, `The Nest of r/${context.subredditName}`, {
         fontFamily: 'Arial Black',
         fontSize: 24,
-        color: '#f1f5f9',
+        color: TEXT.ink,
         align: 'center',
       })
       .setOrigin(0.5);
@@ -50,7 +51,7 @@ export class NestScene extends Scene {
       .text(512, 70, 'Waking it up...', {
         fontFamily: 'Arial',
         fontSize: 13,
-        color: '#7dd3fc',
+        color: TEXT.steel,
         align: 'center',
       })
       .setOrigin(0.5);
@@ -59,7 +60,7 @@ export class NestScene extends Scene {
       .text(512, 690, '', {
         fontFamily: 'Arial',
         fontSize: 15,
-        color: '#fbbf24',
+        color: TEXT.amber,
         align: 'center',
       })
       .setOrigin(0.5);
@@ -132,7 +133,7 @@ export class NestScene extends Scene {
       this.lastKnownMutationCount = mutationCount;
     } catch (error) {
       console.error('Failed to load the Nest:', error);
-      this.subtitleText.setText('Failed to load the Nest — try refreshing.');
+      this.subtitleText.setText('Failed to load the Nest. Try refreshing!');
     }
   }
 
@@ -146,7 +147,7 @@ export class NestScene extends Scene {
 
     if ('error' in result) {
       this.statusText.setText(
-        "You're out of that action for today — come back tomorrow!"
+        "You're out of that action for today. Come back tomorrow!"
       );
       return;
     }
@@ -176,34 +177,27 @@ export class NestScene extends Scene {
     });
   }
 
-  /** Faint drifting stars so the sky reads as a place, not a flat fill. */
-  private spawnStars(): void {
-    const starKey = 'nest-star';
-    if (!this.textures.exists(starKey)) {
-      const g = this.add.graphics();
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(2, 2, 2);
-      g.generateTexture(starKey, 4, 4);
-      g.destroy();
-    }
+  /** Soft cream clouds drifting through the sand sky. */
+  private spawnClouds(): void {
+    for (let i = 0; i < 5; i++) {
+      const cloud = this.add.graphics();
+      cloud.fillStyle(0xfff9df, 0.55);
+      cloud.fillEllipse(0, 0, 110, 34);
+      cloud.fillEllipse(-42, 10, 70, 26);
+      cloud.fillEllipse(46, 8, 76, 28);
 
-    for (let i = 0; i < 46; i++) {
-      const star = this.add.image(
-        Phaser.Math.Between(0, 1920),
-        Phaser.Math.Between(0, 1080),
-        starKey
-      );
-      star.setAlpha(Phaser.Math.FloatBetween(0.08, 0.4));
-      star.setScale(Phaser.Math.FloatBetween(0.5, 1.2));
+      const startX = Phaser.Math.Between(60, 1500);
+      const y = Phaser.Math.Between(50, 240);
+      cloud.setPosition(startX, y);
+      cloud.setScale(Phaser.Math.FloatBetween(0.5, 1.1));
 
       this.tweens.add({
-        targets: star,
-        alpha: Phaser.Math.FloatBetween(0.02, 0.15),
-        duration: Phaser.Math.Between(1400, 3200),
+        targets: cloud,
+        x: startX + Phaser.Math.Between(40, 90),
+        duration: Phaser.Math.Between(9000, 16000),
         yoyo: true,
         repeat: -1,
         ease: 'Sine.InOut',
-        delay: Phaser.Math.Between(0, 2000),
       });
     }
   }
@@ -212,14 +206,24 @@ export class NestScene extends Scene {
     this.cameras.resize(width, height);
 
     this.backgroundFill.clear();
+    // Sky: cream fading into warm sand.
     this.backgroundFill.fillGradientStyle(
-      0x0b1023,
-      0x0b1023,
-      0x1c2f52,
-      0x18294a,
+      PALETTE.cream,
+      PALETTE.cream,
+      PALETTE.sand,
+      PALETTE.sand,
       1
     );
-    this.backgroundFill.fillRect(0, 0, width, height);
+    this.backgroundFill.fillRect(0, 0, width, height * 0.76);
+    // Ground: teal shelf deepening into steel water below.
+    this.backgroundFill.fillGradientStyle(
+      PALETTE.teal,
+      PALETTE.teal,
+      PALETTE.steel,
+      PALETTE.steel,
+      1
+    );
+    this.backgroundFill.fillRect(0, height * 0.76, width, height * 0.24);
 
     // Floor the scale so buttons and text stay legible/tappable on narrow
     // mobile viewports rather than shrinking indefinitely with aspect ratio.

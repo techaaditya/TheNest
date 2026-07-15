@@ -1,9 +1,10 @@
 import * as Phaser from 'phaser';
 import type { NamingStatusResponse } from '../../../shared/types';
-import { CARD_FILL, CARD_STROKE } from './card';
+const BANNER_FILL = 0xfff7dc;
+const BANNER_STROKE = 0xd9be7e;
 
 const NO_MUTATION_MESSAGE =
-  '🏷️ No mutations yet — keep caring for the Nest.';
+  '🏷️ No mutations yet. Keep caring for the Nest!';
 
 const BANNER_WIDTH = 560;
 const BANNER_HEIGHT = 44;
@@ -20,7 +21,7 @@ export class NamingPanel {
     this.container = scene.add.container(x, y);
 
     const bg = scene.add.graphics();
-    bg.fillStyle(CARD_FILL, 0.92);
+    bg.fillStyle(BANNER_FILL, 0.95);
     bg.fillRoundedRect(
       -BANNER_WIDTH / 2,
       -BANNER_HEIGHT / 2,
@@ -28,7 +29,7 @@ export class NamingPanel {
       BANNER_HEIGHT,
       12
     );
-    bg.lineStyle(1.5, CARD_STROKE, 1);
+    bg.lineStyle(1.5, BANNER_STROKE, 1);
     bg.strokeRoundedRect(
       -BANNER_WIDTH / 2,
       -BANNER_HEIGHT / 2,
@@ -42,7 +43,7 @@ export class NamingPanel {
       .text(0, 0, NO_MUTATION_MESSAGE, {
         fontFamily: 'Arial',
         fontSize: 14,
-        color: '#a5b4fc',
+        color: '#2e5560',
         align: 'center',
         wordWrap: { width: BANNER_WIDTH - 32 },
       })
@@ -66,7 +67,7 @@ export class NamingPanel {
     if (naming.window) {
       const hoursLeft = hoursUntil(naming.window.closesAt);
       this.text.setText(
-        `🏷️ Naming in progress — reply in the comments to suggest a name (~${hoursLeft}h left)`
+        `🏷️ Naming in progress! Reply in the comments to suggest a name (~${hoursLeft}h left)`
       );
       return;
     }

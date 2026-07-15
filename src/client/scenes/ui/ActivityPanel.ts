@@ -9,7 +9,7 @@ const ACTION_VERB: Record<CareActionType, string> = {
 };
 
 const MAX_VISIBLE_ITEMS = 5;
-const EMPTY_MESSAGE = 'No activity yet —\nbe the first to care for the Nest.';
+const EMPTY_MESSAGE = 'No activity yet!\nBe the first to care for the Nest.';
 
 export const CARD_WIDTH = 320;
 export const CARD_HEIGHT = 168;
@@ -37,7 +37,7 @@ export class ActivityPanel {
       CARD_WIDTH,
       CARD_HEIGHT,
       '💬 Recent care',
-      '#7dd3fc'
+      '#47828e'
     );
 
     this.text = scene.add.text(
@@ -47,7 +47,7 @@ export class ActivityPanel {
       {
         fontFamily: 'Arial',
         fontSize: 13,
-        color: '#94a3b8',
+        color: '#5c5138',
         align: 'left',
         lineSpacing: 8,
         wordWrap: { width: CARD_WIDTH - 28 },

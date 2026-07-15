@@ -47,7 +47,7 @@ export class CreatureRenderer {
     this.outer = scene.add.container(x, y);
 
     const shadow = scene.add.graphics();
-    shadow.fillStyle(0x000000, 0.28);
+    shadow.fillStyle(0x4a3b1d, 0.22);
     shadow.fillEllipse(0, 96, 122, 22);
     this.outer.add(shadow);
 

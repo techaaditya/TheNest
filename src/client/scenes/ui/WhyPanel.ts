@@ -20,7 +20,7 @@ export class WhyPanel {
       CARD_WIDTH,
       CARD_HEIGHT,
       '🧬 Overnight mutation check',
-      '#c4b5fd'
+      '#2f8d82'
     );
 
     this.text = scene.add.text(
@@ -30,7 +30,7 @@ export class WhyPanel {
       {
         fontFamily: 'Arial',
         fontSize: 13,
-        color: '#94a3b8',
+        color: '#5c5138',
         align: 'left',
         lineSpacing: 8,
         wordWrap: { width: CARD_WIDTH - 28 },

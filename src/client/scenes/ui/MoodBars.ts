@@ -4,9 +4,9 @@ import type { Mood, MoodAxis } from '../../../shared/types';
 const AXES: MoodAxis[] = ['contentment', 'affection', 'energy'];
 
 const AXIS_COLOR: Record<MoodAxis, number> = {
-  contentment: 0x4ade80,
-  affection: 0xf472b6,
-  energy: 0xfacc15,
+  contentment: 0x35ab9f,
+  affection: 0xd96c8a,
+  energy: 0xc98f2d,
 };
 
 const AXIS_LABEL: Record<MoodAxis, string> = {
@@ -42,13 +42,13 @@ export class MoodBars {
         .text(BAR_LEFT - 12, rowY + BAR_HEIGHT / 2, AXIS_LABEL[axis], {
           fontFamily: 'Arial',
           fontSize: 13,
-          color: '#cbd5e1',
+          color: '#5c5138',
         })
         .setOrigin(1, 0.5);
       this.container.add(label);
 
       const track = scene.add.graphics();
-      track.fillStyle(0x1e293b, 1);
+      track.fillStyle(0xd9be7e, 0.8);
       track.fillRoundedRect(BAR_LEFT, rowY, BAR_WIDTH, BAR_HEIGHT, 5);
       this.container.add(track);
 
@@ -60,7 +60,7 @@ export class MoodBars {
         .text(BAR_LEFT + BAR_WIDTH + 12, rowY + BAR_HEIGHT / 2, '', {
           fontFamily: 'Arial',
           fontSize: 12,
-          color: '#94a3b8',
+          color: '#8a7a4f',
         })
         .setOrigin(0, 0.5);
       this.values[axis] = value;

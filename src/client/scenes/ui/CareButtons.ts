@@ -23,9 +23,9 @@ const BUTTON_WIDTH = 150;
 const BUTTON_HEIGHT = 58;
 const BUTTON_SPACING = 168;
 
-const FILL_IDLE = 0x2b3a55;
-const FILL_HOVER = 0x3a4d70;
-const STROKE = 0x4a5f88;
+const FILL_IDLE = 0x35ab9f;
+const FILL_HOVER = 0x2e968b;
+const STROKE = 0x47828e;
 
 type Button = {
   container: Phaser.GameObjects.Container;
@@ -59,7 +59,7 @@ export class CareButtons {
         .text(0, -10, `${ACTION_EMOJI[actionType]} ${LABELS[actionType]}`, {
           fontFamily: 'Arial Black',
           fontSize: 19,
-          color: '#f1f5f9',
+          color: '#fcf2c6',
         })
         .setOrigin(0.5);
       buttonContainer.add(label);
@@ -68,7 +68,7 @@ export class CareButtons {
         .text(0, 16, '', {
           fontFamily: 'Arial',
           fontSize: 12,
-          color: '#94a3b8',
+          color: '#d7f0ec',
         })
         .setOrigin(0.5);
       buttonContainer.add(count);

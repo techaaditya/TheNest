@@ -8,7 +8,7 @@ import { AUTO, Game } from 'phaser';
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
   parent: 'game-container',
-  backgroundColor: '#0b1023',
+  backgroundColor: '#fcf2c6',
   scale: {
     // Keep a fixed game resolution but automatically scale it to fit within the available
     // web-view / device while maintaining aspect ratio.

@@ -33,8 +33,8 @@ export class OnboardingBanner {
     }
 
     const bg = scene.add.graphics();
-    bg.fillStyle(0x1e293b, 0.95);
-    bg.lineStyle(2, 0x4ade80, 0.6);
+    bg.fillStyle(0x47828e, 0.96);
+    bg.lineStyle(2, 0x386874, 1);
     bg.fillRoundedRect(-260, -50, 520, 100, 12);
     bg.strokeRoundedRect(-260, -50, 520, 100, 12);
     this.container.add(bg);
@@ -43,11 +43,11 @@ export class OnboardingBanner {
       .text(
         0,
         -16,
-        "Feed, pet, and play with your subreddit's Nest — three shared daily actions. Community mood shapes how it mutates overnight!",
+        "Feed, pet, and play with your subreddit's Nest using three shared daily actions. Community mood shapes how it mutates overnight!",
         {
           fontFamily: 'Arial',
           fontSize: 13,
-          color: '#e2e8f0',
+          color: '#fcf2c6',
           align: 'center',
           wordWrap: { width: 470 },
         }
@@ -59,8 +59,8 @@ export class OnboardingBanner {
       .text(0, 30, 'Got it', {
         fontFamily: 'Arial Black',
         fontSize: 13,
-        color: '#0f172a',
-        backgroundColor: '#4ade80',
+        color: '#2e5560',
+        backgroundColor: '#fcf2c6',
         padding: { x: 16, y: 6 },
       })
       .setOrigin(0.5)

@@ -3,8 +3,8 @@
 
 import type * as Phaser from 'phaser';
 
-export const CARD_FILL = 0x111f38;
-export const CARD_STROKE = 0x33456b;
+export const CARD_FILL = 0xfff7dc;
+export const CARD_STROKE = 0xd9be7e;
 
 export const addCardChrome = (
   scene: Phaser.Scene,
