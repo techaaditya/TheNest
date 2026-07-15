@@ -5,7 +5,7 @@ import { connectRealtime, context, disconnectRealtime } from '@devvit/web/client
 import type { RealtimeCareMessage } from '../shared/types';
 
 const careChannel = (subredditId: string): string =>
-  `nest-care:${subredditId}`;
+  `nest_care_${subredditId}`;
 
 export const subscribeToCareActions = (
   onMessage: (message: RealtimeCareMessage) => void

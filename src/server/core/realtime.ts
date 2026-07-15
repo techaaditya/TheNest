@@ -5,7 +5,7 @@ import { realtime } from '@devvit/web/server';
 import type { RealtimeCareMessage } from '../../shared/types';
 
 export const careChannel = (subredditId: string): string =>
-  `nest-care:${subredditId}`;
+  `nest_care_${subredditId}`;
 
 export const broadcastCareAction = async (
   subredditId: string,
