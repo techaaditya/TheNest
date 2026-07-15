@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import type { ActivityItem, CareActionType } from '../../../shared/types';
+import { addCardChrome } from './card';
 
 const ACTION_VERB: Record<CareActionType, string> = {
   feed: 'fed',
@@ -7,8 +8,21 @@ const ACTION_VERB: Record<CareActionType, string> = {
   play: 'played with',
 };
 
-const MAX_VISIBLE_ITEMS = 6;
-const EMPTY_MESSAGE = 'No activity yet — be the first to care for the Nest.';
+const MAX_VISIBLE_ITEMS = 5;
+const EMPTY_MESSAGE = 'No activity yet —\nbe the first to care for the Nest.';
+
+export const CARD_WIDTH = 320;
+export const CARD_HEIGHT = 168;
+
+const timeAgo = (ts: number): string => {
+  const seconds = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
 
 export class ActivityPanel {
   private container: Phaser.GameObjects.Container;
@@ -17,13 +31,28 @@ export class ActivityPanel {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.container = scene.add.container(x, y);
-    this.text = scene.add.text(0, 0, EMPTY_MESSAGE, {
-      fontFamily: 'Arial',
-      fontSize: 14,
-      color: '#94a3b8',
-      align: 'left',
-      lineSpacing: 6,
-    });
+    addCardChrome(
+      scene,
+      this.container,
+      CARD_WIDTH,
+      CARD_HEIGHT,
+      '💬 Recent care',
+      '#7dd3fc'
+    );
+
+    this.text = scene.add.text(
+      -CARD_WIDTH / 2 + 14,
+      -CARD_HEIGHT / 2 + 38,
+      EMPTY_MESSAGE,
+      {
+        fontFamily: 'Arial',
+        fontSize: 13,
+        color: '#94a3b8',
+        align: 'left',
+        lineSpacing: 8,
+        wordWrap: { width: CARD_WIDTH - 28 },
+      }
+    );
     this.container.add(this.text);
   }
 
@@ -45,7 +74,8 @@ export class ActivityPanel {
     }
 
     const lines = this.items.map(
-      (item) => `${item.userDisplay} ${ACTION_VERB[item.actionType]} the Nest`
+      (item) =>
+        `${item.userDisplay} ${ACTION_VERB[item.actionType]} the Nest · ${timeAgo(item.ts)}`
     );
     this.text.setText(lines.join('\n'));
   }

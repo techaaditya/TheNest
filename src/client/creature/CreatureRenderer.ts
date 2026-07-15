@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import type { Traits } from '../../shared/types';
+import type { CareActionType, Traits } from '../../shared/types';
 import {
   APPENDAGE_ACCENT_HEX,
   BASE_GEOMETRY,
@@ -26,56 +26,132 @@ const TEXTURE_ORIGIN = -CREATURE_TEXTURE_SIZE / 2;
  * Composites a creature from layered, tinted Phaser game objects driven by
  * NestState.traits: a base silhouette (generated once per base form, then
  * tinted per color trait), a pattern overlay clipped to that silhouette, an
- * appendage overlay, and a constant pair of eyes so the creature stays
- * recognizable and charming across every trait combination.
+ * appendage overlay, and a constant face so the creature stays recognizable
+ * and charming across every trait combination.
+ *
+ * Container nesting keeps animation channels independent so they never fight
+ * over the same property:
+ *   outer   — layout position/scale (owned by the scene's updateLayout)
+ *   reactor — care reactions & mutation punches (y / angle / scale bursts)
+ *   breather— continuous idle breathing (gentle scale yoyo)
  */
 export class CreatureRenderer {
   private scene: Phaser.Scene;
-  private container: Phaser.GameObjects.Container;
+  private outer: Phaser.GameObjects.Container;
+  private reactor: Phaser.GameObjects.Container;
+  private breather: Phaser.GameObjects.Container;
+  private eyes: Phaser.GameObjects.Graphics | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.scene = scene;
-    this.container = scene.add.container(x, y);
+    this.outer = scene.add.container(x, y);
+
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, 0.28);
+    shadow.fillEllipse(0, 96, 122, 22);
+    this.outer.add(shadow);
+
+    this.reactor = scene.add.container(0, 0);
+    this.outer.add(this.reactor);
+
+    this.breather = scene.add.container(0, 0);
+    this.reactor.add(this.breather);
+
+    scene.tweens.add({
+      targets: this.breather,
+      scaleY: 1.035,
+      scaleX: 0.985,
+      duration: 1700,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    });
+
+    this.scheduleBlink();
   }
 
   render(traits: Traits): void {
-    this.container.removeAll(true);
+    this.breather.removeAll(true);
+    this.eyes = null;
 
     const bodyTextureKey = this.ensureBodyTexture(traits.base);
     const colorHex = TRAIT_COLOR_HEX[traits.color];
 
     const body = this.scene.add.sprite(0, 0, bodyTextureKey);
     body.setTint(colorHex);
-    this.container.add(body);
+    this.breather.add(body);
 
     const pattern = this.buildPatternLayer(traits, colorHex);
-    if (pattern) this.container.add(pattern);
+    if (pattern) this.breather.add(pattern);
 
     const appendage = this.buildAppendageLayer(traits);
-    if (appendage) this.container.add(appendage);
+    if (appendage) this.breather.add(appendage);
 
-    this.container.add(this.buildFace());
+    const cheeks = this.buildCheeks(colorHex);
+    this.breather.add(cheeks);
+
+    this.eyes = this.buildEyes();
+    this.breather.add(this.eyes);
+    this.breather.add(this.buildMouth());
   }
 
   setPosition(x: number, y: number): void {
-    this.container.setPosition(x, y);
+    this.outer.setPosition(x, y);
   }
 
   setScale(scale: number): void {
-    this.container.setScale(scale);
+    this.outer.setScale(scale);
+  }
+
+  /** The creature visibly responds to being cared for — a different little
+   * motion per action so feeding, petting, and playing each feel distinct. */
+  playCareReaction(actionType: CareActionType): void {
+    this.scene.tweens.killTweensOf(this.reactor);
+    this.reactor.setPosition(0, 0);
+    this.reactor.setAngle(0);
+    this.reactor.setScale(1);
+
+    if (actionType === 'feed') {
+      // A satisfied chomp: squash down, then spring back.
+      this.scene.tweens.add({
+        targets: this.reactor,
+        scaleY: 0.86,
+        scaleX: 1.1,
+        duration: 130,
+        yoyo: true,
+        ease: 'Quad.Out',
+      });
+    } else if (actionType === 'pet') {
+      // A happy lean into the hand.
+      this.scene.tweens.add({
+        targets: this.reactor,
+        angle: 7,
+        duration: 160,
+        yoyo: true,
+        repeat: 1,
+        ease: 'Sine.InOut',
+      });
+    } else {
+      // An excited hop.
+      this.scene.tweens.add({
+        targets: this.reactor,
+        y: -30,
+        duration: 190,
+        yoyo: true,
+        ease: 'Quad.Out',
+      });
+    }
   }
 
   /** A brief scale-punch plus an outward puff of particles, played whenever
    * the daily tick has produced a new mutation — the visible payoff for the
    * community's care (doc §5.1 / §14). */
   playMutationTransition(): void {
-    const baseScaleX = this.container.scaleX;
-    const baseScaleY = this.container.scaleY;
-    this.container.setScale(baseScaleX * 1.3, baseScaleY * 1.3);
+    this.reactor.setScale(1.3);
     this.scene.tweens.add({
-      targets: this.container,
-      scaleX: baseScaleX,
-      scaleY: baseScaleY,
+      targets: this.reactor,
+      scaleX: 1,
+      scaleY: 1,
       duration: 400,
       ease: 'Back.Out',
     });
@@ -87,7 +163,7 @@ export class CreatureRenderer {
       const puff = this.scene.add.graphics();
       puff.fillStyle(0xfbbf24, 0.9);
       puff.fillCircle(0, 0, 6);
-      puff.setPosition(this.container.x, this.container.y);
+      puff.setPosition(this.outer.x, this.outer.y);
 
       this.scene.tweens.add({
         targets: puff,
@@ -99,6 +175,24 @@ export class CreatureRenderer {
         onComplete: () => puff.destroy(),
       });
     }
+  }
+
+  private scheduleBlink(): void {
+    this.scene.time.addEvent({
+      delay: 2200 + Math.random() * 2800,
+      callback: () => {
+        if (this.eyes) {
+          this.scene.tweens.add({
+            targets: this.eyes,
+            scaleY: 0.12,
+            duration: 70,
+            yoyo: true,
+            ease: 'Sine.InOut',
+          });
+        }
+        this.scheduleBlink();
+      },
+    });
   }
 
   private ensureBodyTexture(base: Traits['base']): string {
@@ -184,11 +278,31 @@ export class CreatureRenderer {
     return g;
   }
 
-  private buildFace(): Phaser.GameObjects.Graphics {
+  private buildCheeks(colorHex: number): Phaser.GameObjects.Graphics {
     const g = this.scene.add.graphics();
+    g.fillStyle(shadeColor(colorHex, 0.8), 0.5);
+    g.fillEllipse(-34, 12, 16, 10);
+    g.fillEllipse(34, 12, 16, 10);
+    return g;
+  }
+
+  /** Eyes live in their own graphics, positioned on the eye-line, so the
+   * blink tween's scaleY collapses them in place instead of around the body
+   * center. */
+  private buildEyes(): Phaser.GameObjects.Graphics {
+    const g = this.scene.add.graphics();
+    g.setPosition(0, -5);
     g.fillStyle(0x1f2937, 1);
-    g.fillEllipse(-18, -5, 10, 14);
-    g.fillEllipse(18, -5, 10, 14);
+    g.fillEllipse(-18, 0, 10, 14);
+    g.fillEllipse(18, 0, 10, 14);
+    g.fillStyle(0xffffff, 0.85);
+    g.fillCircle(-16, -3, 2);
+    g.fillCircle(20, -3, 2);
+    return g;
+  }
+
+  private buildMouth(): Phaser.GameObjects.Graphics {
+    const g = this.scene.add.graphics();
     g.lineStyle(3, 0x1f2937, 1);
     g.beginPath();
     g.arc(
